@@ -1,14 +1,14 @@
 {
   "cols": [
-        {"id":"","label":"Time","pattern":"","type":"date"},
+        {"id":"","label":"Time","pattern":"","type":"number"},
         {"id":"","label":"Temperature1","pattern":"","type":"number"}
         {"id":"","label":"Temperature2","pattern":"","type":"number"}
       ],
   "rows": [
-        {"c":[{"v":new Date(2017,12,04,12,00,15),"f":null},{"v":20,"f":null},{"v":24,"f":null}]},
-        {"c":[{"v":new Date(2017,12,04,12,00,20),"f":null},{"v":21,"f":null},{"v":23,"f":null}]},
-        {"c":[{"v":new Date(2017,12,04,12,00,25),"f":null},{"v":22,"f":null},{"v":22,"f":null}]},
-        {"c":[{"v":new Date(2017,12,04,12,00,30),"f":null},{"v":23,"f":null},{"v":21,"f":null}]},
-        {"c":[{"v":new Date(2017,12,04,12,00,35),"f":null},{"v":24,"f":null},{"v":20,"f":null}]},
+        {"c":[{"v":1),"f":null},{"v":20,"f":null},{"v":24,"f":null}]},
+        {"c":[{"v":2),"f":null},{"v":21,"f":null},{"v":23,"f":null}]},
+        {"c":[{"v":3),"f":null},{"v":22,"f":null},{"v":22,"f":null}]},
+        {"c":[{"v":4),"f":null},{"v":23,"f":null},{"v":21,"f":null}]},
+        {"c":[{"v":5),"f":null},{"v":24,"f":null},{"v":20,"f":null}]},
       ]
 }
