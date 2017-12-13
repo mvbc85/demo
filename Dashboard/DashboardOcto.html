@@ -1,0 +1,597 @@
+<html>
+  <head>
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.charts.load('current', {'packages':['corechart']});
+//      google.charts.load('current', {'packages':['line']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(drawChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+	  
+  
+	function drawChart() {
+	  
+//------------------Define Motes-----------------------
+
+	  
+		//Define all the mote IDs
+		var moteArray = [	'00-80-00-00-04-00-4c-28',
+							'00-80-00-00-04-00-4c-4b',
+							'00-80-00-00-04-00-4c-25',
+							'00-80-00-00-04-00-4c-24'];
+	  
+		//Define the sensor IDs (Vibration, Temperature1, Temperature2)
+		var sensorArray = ["A&ver=4","a&ver=2","b&ver=2"];
+		
+		//Create 3 url's per mote (Vibration json, temperature1 json, temperature2 json)
+		var urlArray = new Array(5);
+		for (var i = 0; i < 5; i++) {
+			urlArray[i] = [	"http://54.206.41.113:8081/api/motes/data?moteId="+moteArray[i]+"&sensor="+sensorArray[0],
+							"http://54.206.41.113:8081/api/motes/data?moteId="+moteArray[i]+"&sensor="+sensorArray[1],
+							"http://54.206.41.113:8081/api/motes/data?moteId="+moteArray[i]+"&sensor="+sensorArray[2]]		
+		};
+
+		http://54.206.41.113:8081/api/motes/data?moteId=00-80-00-00-04-00-4c-28&sensor=b&ver=2
+		
+		//Creates arrays with the json data
+		var jsonData = new Array(5);
+		
+		for (var i = 0; i < 5; i++) {
+			jsonData[i] = new Array(3);
+			for (var j = 0; j < 3; j++) {
+				jsonData[i][j] =
+					$.ajax({
+						url: urlArray[i][j],
+						dataType: "json",
+						async: false
+					}).responseText;
+			};
+		};
+
+//-----------------Setting the Status-----------------------------------		
+		
+		var pokemon = ['squirtle','bulbasaur','charmander','pikachu'];
+		var status = new Array()
+		
+		//CHANGE jsonData[0][1] to jsonData[i][1]]
+		for (var i=0; i<3;i++){
+			status[i] = JSON.parse(jsonData[i][1]).data
+			if (status[i][status[i].length-1]>0){
+				document.getElementById(pokemon[i]).outerHTML= '<img id="'+pokemon[i]+'" width="200" height="200" src="'+pokemon[i]+'.png">';
+				document.getElementById(pokemon[i]+'Icon').outerHTML= '<img id="'+pokemon[i]+'Icon" width="50" height="50" src="check.png" alt="Checkmark">';
+			} else {
+				document.getElementById(pokemon[i]).outerHTML= '<img id="'+pokemon[i]+'" width="200" height="200" src="'+pokemon[i]+'BW.png">';
+				document.getElementById(pokemon[i]+'Icon').outerHTML= '<img id="'+pokemon[i]+'Icon" width="50" height="50" src="Xmark.png" alt="Xmark">';
+			}
+		}
+		
+		
+//------------------Chart Options-----------------------
+
+		
+		// Set Vibration chart options
+        var options = 	{
+
+						curveType:'function',
+						backgroundColor:'#3a3c45',//new
+						colors:['#f7af3e','#de9536'],//new						
+						legend:{
+							position:'none'
+						},
+						animation:{
+							duration:1000,
+							easing:'out'
+						},
+						chartArea:{
+							left:'10%',
+							top:'5%',
+							width:'80%',
+							height:'80%',
+							backgroundColor:'#3a3c45',//new
+						},
+						hAxis:{
+							gridlines:{
+								color:'transparent',
+							},
+							viewWindow:{
+								min:0,
+								max:6000,
+							},
+							baselineColor:'#858b93',			
+							textStyle: {//new
+								color: 'transparent',
+							},
+							color:'white',//new
+						},
+						vAxis:{
+							baselineColor:'#858b93',
+							textStyle: {
+								color: '#858b93',
+								fontName: 'Roboto',
+							},						
+							gridlines:{
+								color:'transparent',
+							},
+							format:'short',
+							viewWindow:{
+								min:0,
+								max:15000000,
+							}
+						}			
+		};
+	  
+		// Set Temperature chart options
+        var optionsTemp = 	{
+							backgroundColor:'#3a3c45',//new
+							colors:['#f8e407','#de9536'],//new		
+							legend:{
+								position:'none'
+							},
+							//curveType:'function',
+							animation:{
+								duration:500,
+								easing:'out',
+							},
+  							chartArea:{
+								left:'5%',
+								top:'5%',
+								width:'90%',
+								height:'80%',
+							},
+							hAxis:{
+								baselineColor:'#858b93',								
+								textStyle: {//new
+									color: 'transparent',
+								},
+								gridlines:{
+									color:'transparent',
+								},								
+								color:'transparent',//new
+							},
+							vAxis:{
+								baseline:20,
+								baselineColor:'#858b93',
+								textStyle: {//new
+									color: '#858b93',
+									fontName: 'Roboto',
+								},
+								color:'transparent',//new								
+								minorGridlines:{
+									color:'transparent',
+								},
+								viewWindow:{
+									min:20,
+									//max:10000,
+								}
+							},								
+		};
+        
+		
+//------------------Temperature Charts-----------------------
+
+/* 		//Temperature Chart 1 -DRAFT
+
+			var temperature = new Array;			
+			var dataMote = new Array();
+			var dataTable = new Array();
+
+			var t=0;
+
+			for (var i=0;i<2;i++){
+				for (var j=1;j<3;j++){
+					temperature[t] = JSON.parse(jsonData[i][j]).data;					
+				t++;
+				}
+			}
+			
+			console.log(temperature.length);
+			
+			
+			for (var i=0; i<temperature.length;i+=2){
+				var item = new Array();
+				item.push(temperature[i]);
+				item.push(temperature[i+1]);
+				dataMote.push(item);
+				for (var j=0;j<dataMote.length;j++){
+					var item2 = new Array();
+					item2.push()
+					dataTable.push(j,dataMote[j][1],dataMote[j][2]);
+				}
+			}
+			
+			console.log(dataMote.length);
+			console.log(dataTable.length);
+			
+			var dataTemp = new Array();
+			for (var i = 0; i < dataTable.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Number');
+				dataDrew.addColumn('number', 'Temperature1');
+				dataDrew.addColumn('number', 'Temperature2');
+				dataDrew.addRows(dataTable);	
+				dataTemp.push(dataDrew);			
+			}
+
+			// Instantiate and draw our chart, passing in some options.
+			var chart1 = new google.visualization.LineChart(document.getElementById('chart1_div'));
+			chart1.draw(dataTemp[0], optionsTemp);
+			
+/* 			var chart1 = new google.visualization.LineChart(document.getElementById('chart3_div'));
+			chart1.draw(dataTemp[1], optionsTemp);
+
+			var chart1 = new google.visualization.LineChart(document.getElementById('chart5_div'));
+			chart1.draw(dataTemp[2], optionsTemp);
+
+			var chart1 = new google.visualization.LineChart(document.getElementById('chart7_div'));
+			chart1.draw(dataTemp[3], optionsTemp);
+
+			var chart1 = new google.visualization.LineChart(document.getElementById('chart9_div'));
+			chart1.draw(dataTemp[4], optionsTemp);		 */	 
+
+
+		//Temperature Chart 1
+		
+			var temperature1 = JSON.parse(jsonData[0][1]).data;
+			var temperature2 = JSON.parse(jsonData[0][2]).data;	
+			
+			var dataTransform = new Array();
+			
+			for (var i=0; i<temperature1.length;i++){
+				var item = new Array();
+				item.push(i);
+				item.push(temperature1[i]);
+				item.push(temperature2[i]);
+				dataTransform.push(item);
+			}
+			
+			var dataTemp = new Array();
+			//new google.visualization.DataTable();
+			for (var i = 0; i < dataTransform.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Number');
+				dataDrew.addColumn('number', 'Temperature1');
+				dataDrew.addColumn('number', 'Temperature2');
+				dataDrew.addRows(dataTransform);	
+				dataTemp.push(dataDrew);			
+			}
+
+			// Instantiate and draw our chart, passing in some options.
+			var chart1 = new google.visualization.LineChart(document.getElementById('chart1_div'));
+			chart1.draw(dataTemp[0], optionsTemp);			
+		
+		//Temperature Chart 2
+		
+			var temperature1 = JSON.parse(jsonData[1][1]).data;
+			var temperature2 = JSON.parse(jsonData[1][2]).data;	
+			
+			var dataTransform = new Array();
+			
+			for (var i=0; i<temperature1.length;i++){
+				var item = new Array();
+				item.push(i);
+				item.push(temperature1[i]);
+				item.push(temperature2[i]);
+				dataTransform.push(item);
+			}
+			
+			var dataTemp = new Array();
+			//new google.visualization.DataTable();
+			for (var i = 0; i < dataTransform.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Number');
+				dataDrew.addColumn('number', 'Temperature1');
+				dataDrew.addColumn('number', 'Temperature2');
+				dataDrew.addRows(dataTransform);	
+				dataTemp.push(dataDrew);			
+			}
+
+			// Instantiate and draw our chart, passing in some options.
+			var chart2 = new google.visualization.LineChart(document.getElementById('chart3_div'));
+			chart2.draw(dataTemp[0], optionsTemp);			
+			
+		//Temperature Chart 3
+		
+			var temperature1 = JSON.parse(jsonData[2][1]).data;
+			var temperature2 = JSON.parse(jsonData[2][2]).data;	
+			
+			var dataTransform = new Array();
+			
+			for (var i=0; i<temperature1.length;i++){
+				var item = new Array();
+				item.push(i);
+				item.push(temperature1[i]);
+				item.push(temperature2[i]);
+				dataTransform.push(item);
+			}
+			
+			var dataTemp = new Array();
+			//new google.visualization.DataTable();
+			for (var i = 0; i < dataTransform.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Number');
+				dataDrew.addColumn('number', 'Temperature1');
+				dataDrew.addColumn('number', 'Temperature2');
+				dataDrew.addRows(dataTransform);	
+				dataTemp.push(dataDrew);			
+			}
+
+			// Instantiate and draw our chart, passing in some options.
+			
+			var chart3 = new google.visualization.LineChart(document.getElementById('chart5_div'));
+			chart3.draw(dataTemp[0], optionsTemp);			
+
+			
+/* 		//Temperature Chart 4
+		
+			var temperature1 = JSON.parse(jsonData[3][1]).data;
+			var temperature2 = JSON.parse(jsonData[3][2]).data;	
+			
+			var dataTransform = new Array();
+			
+			for (var i=0; i<temperature1.length;i++){
+				var item = new Array();
+				item.push(i);
+				item.push(temperature1[i]);
+				item.push(temperature2[i]);
+				dataTransform.push(item);
+			}
+			
+			var dataTemp = new Array();
+			//new google.visualization.DataTable();
+			for (var i = 0; i < dataTransform.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Number');
+				dataDrew.addColumn('number', 'Temperature1');
+				dataDrew.addColumn('number', 'Temperature2');
+				dataDrew.addRows(dataTransform);	
+				dataTemp.push(dataDrew);			
+			}
+
+			// Instantiate and draw our chart, passing in some options.
+
+			var chart4 = new google.visualization.LineChart(document.getElementById('chart7_div'));
+			chart4.draw(dataTemp[0], optionsTemp);	 */
+			
+/* 		//Temperature Chart 5
+		
+			var temperature1 = JSON.parse(jsonData[0][1]).data;
+			var temperature2 = JSON.parse(jsonData[0][2]).data;	
+			
+			var dataTransform = new Array();
+			
+			for (var i=0; i<temperature1.length;i++){
+				var item = new Array();
+				item.push(i);
+				item.push(temperature1[i]);
+				item.push(temperature2[i]);
+				dataTransform.push(item);
+			}
+			
+			var dataTemp = new Array();
+			//new google.visualization.DataTable();
+			for (var i = 0; i < dataTransform.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Number');
+				dataDrew.addColumn('number', 'Temperature1');
+				dataDrew.addColumn('number', 'Temperature2');
+				dataDrew.addRows(dataTransform);	
+				dataTemp.push(dataDrew);			
+			}
+
+			// Instantiate and draw our chart, passing in some options.
+			
+			var chart5 = new google.visualization.LineChart(document.getElementById('chart9_div'));
+			chart5.draw(dataTemp[0], optionsTemp);	
+ */			
+			
+//------------------Vibration Charts-----------------------
+		
+		
+		
+		//Vibration Chart 
+		
+		var data = new Array();
+
+		
+		//Create an array (data) with all vibration readings of all motes
+		//Change x<2 to x<5`
+		for (var x=0;x<3;x++){
+			theData = JSON.parse(jsonData[x][0]).data;
+			for (var i = 0; i < theData.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Amplitude');
+				dataDrew.addColumn('number', 'Frequency');		
+				dataDrew.addRows(theData[i]);		
+				data.push(dataDrew);
+			}
+		}
+
+
+		//Create the LineChart objects
+		var chartVib1 = new google.visualization.ColumnChart(document.getElementById('chart2_div'));
+		var chartVib2 = new google.visualization.ColumnChart(document.getElementById('chart4_div'));
+		var chartVib3 = new google.visualization.ColumnChart(document.getElementById('chart6_div'));
+		//var chartVib4 = new google.visualization.LineChart(document.getElementById('chart8_div'));
+		//var chartVib5 = new google.visualization.LineChart(document.getElementById('chart10_div'));			
+		
+		//Change this to chartVib5
+		google.visualization.events.addListener(chartVib1, 'animationfinish', animate);
+		
+		//uncomment other chartVib
+		for (var i=0;i<2;i++){
+			chartVib1.draw(data[0], options);
+			chartVib2.draw(data[5], options);
+			//chartVib3.draw(data[10], options);
+			//chartVib4.draw(data[15], options);
+			//chartVib5.draw(data[20], options);
+		}
+
+		var dataInd = 0;
+		//change the values for charts 3 to 5 (10+,15+,20+)
+		function animate() {
+			if (dataInd < 5) {
+				if (dataInd == 0){
+					document.getElementById('Vib5').outerHTML= '<span id="Vib5">&#9898</span>';					
+					document.getElementById('Vib1').outerHTML= '<span id="Vib1">&#128308</span>';				
+				}else{
+					document.getElementById('Vib'+(dataInd)).outerHTML= '<span id="Vib'+(dataInd)+'">&#9898</span>';
+				}                                                                           
+				document.getElementById('Vib'+(dataInd+1)).outerHTML= '<span id="Vib'+(dataInd+1)+'">&#128308</span>';
+				console.log('dataInd is '+dataInd);
+				chartVib1.draw(data[dataInd], options);	
+				chartVib2.draw(data[5+dataInd], options);	//change to data[5+dataInd]
+				//chartVib3.draw(data[10+dataInd], options);	//change to data[10+dataInd]
+				//chartVib4.draw(data[dataInd], options);	//change to data[15+dataInd]
+				//chartVib5.draw(data[dataInd], options);	//change to data[20+dataInd]		
+				dataInd++;
+			}
+		}
+	
+	}
+
+	setInterval(drawChart,15000);
+
+    </script>
+
+	<style>
+		@import url('https://fonts.googleapis.com/css?family=Roboto');
+		
+		body{
+			width:100%;
+			background-color:#2e3139;
+			font-family: 'Roboto', sans-serif;
+			color:white;
+		}
+		
+		td{
+			padding-top: 10px;
+			padding-right: 10px;
+			padding-bottom: 10px;
+			padding-left: 10px;
+		}
+		table {
+				
+				width:100%;
+				font-family: 'Roboto', Times, serif;
+		}
+		
+		th {
+			font-size:xx-large;
+			text-align:center;
+			height:50px;
+		}
+
+		table, th, td {
+		border: 0px solid white;
+		}	
+	
+		span {
+			font-size:medium;
+			align:center;
+		}
+		
+		#disabled {
+			color: red;
+			font-weight:bold;
+			font-family:arial;
+		}
+
+	
+	</style>
+	
+  </head>
+
+  <body>
+	
+	<!--Table and divs that hold the charts-->
+     <table>
+		<col width="5%">
+		<col width="5%">
+		<col width="40%">
+		<col width="40%">
+		<tr>
+			<th colspan="2" rowspa="2" id="status" height="500">Status</th>
+			<th>Ambient & Surface Temperatures</th>
+			<th>
+				Vibration
+				
+			</th>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td align="center">
+				<span id="Vib1">&#9898</span>
+				<span id="Vib2">&#9898</span>
+				<span id="Vib3">&#9898</span>
+				<span id="Vib4">&#9898</span>
+				<span id="Vib5">&#9898</span>
+			</td>
+		</tr>
+		<tr>
+			<td><img id="squirtle" width=200 height=200 src="squirtle.png"></img></td>
+			<td><img id="squirtleIcon"></img></td>
+			<td><div id="chart1_div" ></div></td>
+			<td><div id="chart2_div" ></div></td>
+		</tr>
+		<tr>
+			<td><img id="bulbasaur" width=200 height=200 src="bulbasaur.png"></img></td>
+			<td><img id="bulbasaurIcon"></img></td>
+			<td><div id="chart3_div" ></div></td>
+			<td><div id="chart4_div" ></div></td>
+		</tr>
+		<tr>
+			<td><img id="charmander" width=200 height=200 src="charmander.png"></img></td>
+			<td><img id="charmanderIcon"></img></td>
+			<td><div id="chart5_div" ></div></td>
+			<td><div id="chart6_div" ></div></td>
+		<tr>
+		<tr >
+			<td colspan="4" height="200"><iframe src="https://search-wel-science-iot-es-dev-dffvcgw6rz426kgncmabvdrdvi.ap-southeast-2.es.amazonaws.com/_plugin/kibana/app/kibana#/visualize/edit/483a6930-de35-11e7-98ac-09e138332d4b?embed=true&_g=(refreshInterval%3A(display%3AOff%2Cpause%3A!f%2Cvalue%3A0)%2Ctime%3A(from%3Anow-1h%2Cmode%3Aquick%2Cto%3Anow))" height="100%" width="100%"></iframe></td>
+<!-- 			<td><img id="pikachu" width=200 height=200 src="pikachu.png"></img></td>
+			<td><img id="pikachuIcon"></img></td>
+			<td><div id="chart7_div" ></div></td>
+			<td><div id="chart8_div" ></div></td> -->
+		</tr>
+<!--  		<tr>
+			<td><img id="mewtwo" width=200 height=200 src="mewtwo.jpg"></img></td>
+			<td><img id="mewtwoIcon"></img></td>
+			<td><div id="chart9_div" ></div></td>
+			<td><div id="chart10_div" ></div></td>
+		</tr>  -->
+    </table>
+	<table width="100%">
+		<tr align="left">
+			<th><font face="Roboto">Pluto Live Data</font></th>
+<!-- 		</tr>
+		<tr>
+			<td><div id="chart11_div" style="border: 1px solid #ccc"></div></td>
+		</tr> -->
+	</table>
+	
+	<table>
+		<col width = "100%">
+		<col width = "0%">
+		<tr>
+			<td height="220"><iframe src="https://search-wel-science-iot-es-dev-dffvcgw6rz426kgncmabvdrdvi.ap-southeast-2.es.amazonaws.com/_plugin/kibana/app/kibana#/dashboard/64005ba0-dec8-11e7-816b-79f1cad74d90?embed=true&_g=(refreshInterval%3A(display%3AOff%2Cpause%3A!f%2Cvalue%3A0)%2Ctime%3A(from%3Anow-12h%2Cmode%3Aquick%2Cto%3Anow))" height="100%" width="100%"></iframe></td>
+
+		</tr>
+	</table>
+	
+ 
+	<!--Infogram test chart-->
+	<!-- <script id="infogram_0_aa61fa54-2fb7-423b-a72e-e4cb82ec27d3" title="Report Light" src="https://e.infogram.com/js/dist/embed.js?b98" type="text/javascript"></script><div style="padding:8px 0;font-family:Arial!important;font-size:13px!important;line-height:15px!important;text-align:center;border-top:1px solid #dadada;margin:0 30px"><a href="https://infogram.com/aa61fa54-2fb7-423b-a72e-e4cb82ec27d3" style="color:#989898!important;text-decoration:none!important;" target="_blank">Report Light</a><br><a href="https://infogram.com" style="color:#989898!important;text-decoration:none!important;" target="_blank" rel="nofollow">Infogram</a></div> -->
+
+	
+	
+  </body>
+</html>

@@ -1,0 +1,209 @@
+<html>
+  <head>
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.charts.load('current', {'packages':['corechart']});
+//      google.charts.load('current', {'packages':['line']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(drawChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+	  
+  
+      function drawChart() {
+	  
+//------------------Define Motes-----------------------
+
+	  
+		//Define all the mote IDs
+		var moteArray = [	'00-80-00-00-04-00-4c-1d',
+							'00-80-00-00-04-00-4c-25'];
+	  
+		//Define the sensor IDs (Vibration, Temperature1, Temperature2)
+		var sensorArray = ["A&ver=4","a&ver=2","b&ver=2"];
+		
+		//Create 3 url's per mote (Vibration json, temperature1 json, temperature2 json)
+		var urlArray = new Array(5);
+		for (var i = 0; i < 5; i++) {
+			urlArray[i] = [	"http://54.206.41.113:8081/api/motes/data?moteId="+moteArray[i]+"&sensor="+sensorArray[0],
+							"http://54.206.41.113:8081/api/motes/data?moteId="+moteArray[i]+"&sensor="+sensorArray[1],
+							"http://54.206.41.113:8081/api/motes/data?moteId="+moteArray[i]+"&sensor="+sensorArray[2]]		
+		};
+
+		//Creates arrays with the json data
+		var jsonData = new Array(5);
+		
+		for (var i = 0; i < 5; i++) {
+			jsonData[i] = new Array(3);
+			for (var j = 0; j < 3; j++) {
+				jsonData[i][j] =
+					$.ajax({
+						url: urlArray[i][j],
+						dataType: "json",
+						async: false
+					}).responseText;
+			};
+		};
+
+		
+//------------------Chart Options-----------------------
+
+		
+		// Set Vibration chart options
+        var options = 	{
+
+			curveType:'function',
+ 			
+			legend:{
+				position:'none'
+			},
+			animation:{
+				duration:900,
+				easing:'out'
+			},
+			chartArea:{
+				left:'5%',
+				top:'5%',
+				width:'90%',
+				height:'80%',
+			},
+/* 			hAxis:{
+				gridlines:{
+					color:'transparent',
+				},
+				viewWindow:{
+					min:0,
+					max:10000,
+				}
+			},
+			vAxis:{
+				gridlines:{
+					color:'transparent',
+				},
+				viewWindow:{
+					min:0,
+					max:30000000,
+				} 
+			}		*/	
+		};
+	  
+		// Set Temperature chart options
+        var optionsTemp = 	{
+							legend:{
+								position:'none'
+							},
+							animation:{
+								duration:500,
+								easing:'out',
+							},
+  							chartArea:{
+								left:'5%',
+								top:'5%',
+								width:'90%',
+								height:'80%',
+							},
+/* 							vAxis:{
+								gridlines:{
+									color:'transparent',
+								},
+								viewWindow:{
+									min:0,
+									max:30000000,
+								}
+							},			 */					
+							};
+        
+//------------------Temperature Charts-----------------------
+
+
+		//Temperature Chart 1
+		
+			var temperature1 = JSON.parse(jsonData[0][1]).data;
+			var temperature2 = JSON.parse(jsonData[0][2]).data;	
+			
+			var dataTransform = new Array();
+			
+			for (var i=0; i<temperature1.length;i++){
+				var item = new Array();
+				item.push(i);
+				item.push(temperature1[i]);
+				item.push(temperature2[i]);
+				dataTransform.push(item);
+			}
+			
+			var dataTemp = new Array();
+			//new google.visualization.DataTable();
+			for (var i = 0; i < dataTransform.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Number');
+				dataDrew.addColumn('number', 'Temperature1');
+				dataDrew.addColumn('number', 'Temperature2');
+				dataDrew.addRows(dataTransform);	
+				dataTemp.push(dataDrew);			
+			}
+
+			// Instantiate and draw our chart, passing in some options.
+			var chartTemp_div = document.getElementById('png_temp');
+			var chartTemp = new google.visualization.LineChart(chartTemp_div);
+			
+			google.visualization.events.addListener(chartTemp, 'ready', function () {
+			chartTemp_div.innerHTML = '<img src="' + chartTemp.getImageURI() + '">';
+			});
+
+			chartTemp.draw(dataTemp[0], optionsTemp);						
+			
+//------------------Vibration Charts-----------------------
+		
+		
+		
+		//Vibration Chart 
+		
+		var data = new Array();
+
+		
+		//Create an array (data) with all vibration readings of all motes
+		//Change x<2 to x<5`
+		theData = JSON.parse(jsonData[0][0]).data;
+
+			for (var i = 0; i < theData.length; i++) {
+				var dataDrew = new google.visualization.DataTable();
+				dataDrew.addColumn('number', 'Amplitude');
+				dataDrew.addColumn('number', 'Frequency');		
+				dataDrew.addRows(theData[i]);		
+				data.push(dataDrew);
+			};
+
+		Create the LineChart objects
+
+		var chartVib_div = document.getElementById('png_vib');
+		var chartVib = new google.visualization.LineChart(chartVib_div);
+
+		google.visualization.events.addListener(chartVib, 'ready', function () {
+		chartVib_div.innerHTML = '<img src="' + chartVib.getImageURI() + '">';
+		});
+
+		chartVib.draw(data[0], options);
+		
+		console.log(chartVib.getImageURI());
+
+      }
+
+    </script>
+
+	
+  </head>
+
+  <body>
+	
+		  <div id='png_temp'></div>
+		  <div id='png_vib'></div>
+
+  </body>
+</html>
